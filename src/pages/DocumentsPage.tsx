@@ -33,10 +33,12 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (import.meta.env.VITE_DEMO_MODE !== 'true') {
-      getDocuments().then(setDocs).catch(console.error)
+      setLoading(true)
+      getDocuments().then(setDocs).catch(console.error).finally(() => setLoading(false))
     }
   }, [])
 
@@ -60,12 +62,12 @@ export default function DocumentsPage() {
       </div>
 
       {/* Search + Filter */}
-      <div className="flex gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-carbon-500" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by title or equipment tag…" className="query-input pl-9" />
         </div>
-        <div className="flex gap-1 p-1 bg-carbon-900 rounded-lg border border-white/5">
+        <div className="flex gap-1 p-1 bg-carbon-900 rounded-lg border border-white/5 overflow-x-auto">
           <button onClick={() => setFilterType('all')} className={`text-xs px-2.5 py-1 rounded transition-all ${filterType === 'all' ? 'bg-white/10 text-carbon-200' : 'text-carbon-500 hover:text-carbon-300'}`}>All</button>
           {types.map(t => (
             <button key={t} onClick={() => setFilterType(filterType === t ? 'all' : t)} className={`text-xs px-2.5 py-1 rounded transition-all ${filterType === t ? 'bg-white/10 text-carbon-200' : 'text-carbon-500 hover:text-carbon-300'}`}>
@@ -76,58 +78,72 @@ export default function DocumentsPage() {
       </div>
 
       {/* Table */}
-      <div className="panel overflow-hidden">
-        <div className="grid grid-cols-[1fr_120px_120px_80px_100px] gap-3 px-4 py-2.5 border-b border-white/5 text-[10px] font-mono text-carbon-600 uppercase tracking-widest">
-          <span>Document</span>
-          <span>Type</span>
-          <span>Equipment</span>
-          <span>Chunks</span>
-          <span>Ingested</span>
-        </div>
-        {filtered.map((doc, i) => (
-          <motion.div
-            key={doc.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: i * 0.03 }}
-            className="grid grid-cols-[1fr_120px_120px_80px_100px] gap-3 px-4 py-3 border-b border-white/3 last:border-0 hover:bg-white/3 cursor-pointer transition-colors items-center"
-            onClick={() => setSelectedDoc(doc === selectedDoc ? null : doc)}
-          >
-            <div className="min-w-0">
-              <p className="text-sm text-carbon-200 truncate">{doc.title}</p>
-              {doc.plant_area && <p className="text-[10px] text-carbon-600 font-mono">{doc.plant_area}</p>}
-            </div>
-            <div>
-              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${DOC_TYPE_COLORS[doc.doc_type] || 'text-carbon-500 bg-carbon-800'}`}>
-                {DOC_TYPE_LABELS[doc.doc_type as DocType]}
+      <div className="panel overflow-x-auto">
+        <div className="min-w-[640px]">
+          <div className="grid grid-cols-[1fr_120px_120px_80px_100px] gap-3 px-4 py-2.5 border-b border-white/5 text-[10px] font-mono text-carbon-600 uppercase tracking-widest">
+            <span>Document</span>
+            <span>Type</span>
+            <span>Equipment</span>
+            <span>Chunks</span>
+            <span>Ingested</span>
+          </div>
+          {loading && (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-[1fr_120px_120px_80px_100px] gap-3 px-4 py-3 border-b border-white/3 last:border-0 items-center animate-pulse">
+                <div className="h-3.5 w-3/4 bg-white/5 rounded" />
+                <div className="h-3 w-12 bg-white/5 rounded" />
+                <div className="h-3 w-16 bg-white/5 rounded" />
+                <div className="h-3 w-6 bg-white/5 rounded" />
+                <div className="h-3 w-10 bg-white/5 rounded" />
+              </div>
+            ))
+          )}
+          {!loading && filtered.map((doc, i) => (
+            <motion.div
+              key={doc.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.03 }}
+              className="grid grid-cols-[1fr_120px_120px_80px_100px] gap-3 px-4 py-3 border-b border-white/3 last:border-0 hover:bg-white/3 cursor-pointer transition-colors items-center"
+              onClick={() => setSelectedDoc(doc === selectedDoc ? null : doc)}
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-carbon-200 truncate">{doc.title}</p>
+                {doc.plant_area && <p className="text-[10px] text-carbon-600 font-mono">{doc.plant_area}</p>}
+              </div>
+              <div>
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${DOC_TYPE_COLORS[doc.doc_type] || 'text-carbon-500 bg-carbon-800'}`}>
+                  {DOC_TYPE_LABELS[doc.doc_type as DocType]}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {doc.equipment_tags.slice(0, 2).map(t => (
+                  <span key={t} className="text-[9px] font-mono text-blue-400 bg-blue-500/10 px-1 rounded">{t}</span>
+                ))}
+                {doc.equipment_tags.length > 2 && <span className="text-[9px] text-carbon-600">+{doc.equipment_tags.length - 2}</span>}
+              </div>
+              <span className="text-xs font-mono text-carbon-500">{doc.chunk_count}</span>
+              <span className="text-[10px] font-mono text-carbon-600">
+                {new Date(doc.ingested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
               </span>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {doc.equipment_tags.slice(0, 2).map(t => (
-                <span key={t} className="text-[9px] font-mono text-blue-400 bg-blue-500/10 px-1 rounded">{t}</span>
-              ))}
-              {doc.equipment_tags.length > 2 && <span className="text-[9px] text-carbon-600">+{doc.equipment_tags.length - 2}</span>}
-            </div>
-            <span className="text-xs font-mono text-carbon-500">{doc.chunk_count}</span>
-            <span className="text-[10px] font-mono text-carbon-600">
-              {new Date(doc.ingested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-            </span>
-          </motion.div>
-        ))}
-        {filtered.length === 0 && (
-          <div className="py-12 text-center text-carbon-600 text-sm">No documents match your search</div>
-        )}
+            </motion.div>
+          ))}
+          {!loading && filtered.length === 0 && (
+            <div className="py-12 text-center text-carbon-600 text-sm">No documents match your search</div>
+          )}
+        </div>
       </div>
+      <p className="text-[10px] text-carbon-600 mt-1.5 sm:hidden">Scroll sideways to see all columns →</p>
 
       {/* Selected doc detail */}
       {selectedDoc && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-4 panel p-5">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
             <div>
               <h3 className="text-sm font-medium text-carbon-100">{selectedDoc.title}</h3>
               <p className="text-xs text-carbon-500 font-mono mt-0.5">{selectedDoc.file_path} · {(selectedDoc.file_size / 1024).toFixed(0)} KB</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button onClick={() => navigate(`/query?q=Tell me about ${selectedDoc.title}`)} className="btn-primary text-xs">
                 <FileText size={11} /> Ask about this doc
               </button>
@@ -136,7 +152,7 @@ export default function DocumentsPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <p className="section-label mb-1">Regulatory Refs</p>
               {selectedDoc.regulatory_refs.length ? selectedDoc.regulatory_refs.map(r => (

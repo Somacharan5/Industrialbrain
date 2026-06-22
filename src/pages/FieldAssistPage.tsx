@@ -104,7 +104,7 @@ export default function FieldAssistPage() {
   }, [input, loading])
 
   return (
-    <div className="flex flex-col h-screen max-w-xl mx-auto">
+    <div className="flex flex-col h-full max-w-xl mx-auto">
       {/* Header — compact for mobile */}
       <div className="flex-shrink-0 h-14 flex items-center justify-between px-4 border-b border-white/5 bg-carbon-950">
         <div className="flex items-center gap-2">

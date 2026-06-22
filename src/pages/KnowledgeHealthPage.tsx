@@ -68,7 +68,7 @@ export default function KnowledgeHealthPage() {
       </div>
 
       {/* Score cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {(['critical', 'high', 'medium', 'low'] as const).map(r => {
           const cfg = RISK_CFG[r]
           return (
@@ -116,9 +116,9 @@ export default function KnowledgeHealthPage() {
               transition={{ delay: i * 0.04 }}
               className={`panel p-4 border ${cfg.border} ${cfg.bg}`}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-[10px] font-mono font-medium uppercase ${cfg.color}`}>{item.risk}</span>
                     <span className="text-[10px] font-mono text-carbon-600 bg-carbon-800 px-1.5 py-0.5 rounded">{item.doc_type}</span>
                     {item.equipment_tags.map(t => <span key={t} className="badge-blue text-[9px]">{t}</span>)}
@@ -126,7 +126,7 @@ export default function KnowledgeHealthPage() {
                   <p className="text-sm text-carbon-200 truncate">{item.title}</p>
                   <p className="text-xs text-carbon-500 mt-0.5">{item.reason}</p>
                 </div>
-                <div className="flex-shrink-0 w-28">
+                <div className="flex-shrink-0 w-full sm:w-28">
                   <div className="flex justify-between text-[10px] font-mono mb-1">
                     <span className="text-carbon-600">Age</span>
                     <span className={cfg.color}>{item.days_since_update}d</span>
@@ -147,6 +147,15 @@ export default function KnowledgeHealthPage() {
             </motion.div>
           )
         })}
+        {filtered.length === 0 && (
+          <div className="panel p-8 text-center">
+            <CheckCircle size={20} className="text-carbon-600 mx-auto mb-2" />
+            <p className="text-sm text-carbon-400">No documents match this filter</p>
+            <button onClick={() => setFilterRisk('all')} className="text-xs text-signal-green hover:text-signal-green/80 mt-2">
+              Clear filter
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

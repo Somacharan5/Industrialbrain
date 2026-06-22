@@ -25,12 +25,14 @@ export default function RCAPage() {
   const [result, setResult] = useState<RCAResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [streamText, setStreamText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const handleRCA = async () => {
     if (!equipment.trim() || !problem.trim()) return
     setLoading(true)
     setStreamText('')
     setResult(null)
+    setError(null)
 
     try {
       if (import.meta.env.VITE_DEMO_MODE === 'true') {
@@ -50,6 +52,7 @@ export default function RCAPage() {
       }
     } catch (err) {
       console.error(err)
+      setError('RCA analysis failed — the AI service may be unavailable. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -88,7 +91,7 @@ export default function RCAPage() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleRCA}
             disabled={loading || !equipment.trim() || !problem.trim()}
@@ -105,7 +108,7 @@ export default function RCAPage() {
           >
             Load demo: V-302 compressor
           </button>
-          <span className="text-xs text-carbon-600 font-mono ml-auto">
+          <span className="text-xs text-carbon-600 font-mono lg:ml-auto">
             Cross-references: Maintenance records, incident reports, OEM manuals, OISD standards
           </span>
         </div>
@@ -119,6 +122,22 @@ export default function RCAPage() {
             <span className="text-signal-green">RCA Agent running…</span>
           </div>
           <p className="line-clamp-4 text-carbon-600">{streamText || 'Searching knowledge base for relevant maintenance records, incident reports, and equipment documentation…'}</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div className="panel p-4 mb-4 border border-red-500/20 bg-red-500/5 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!result && !loading && !error && (
+        <div className="panel p-10 text-center">
+          <AlertTriangle size={22} className="text-carbon-600 mx-auto mb-3" />
+          <p className="text-sm text-carbon-400">Enter an equipment tag and problem statement to run an RCA</p>
+          <p className="text-xs text-carbon-600 mt-1">Or click "Load demo: V-302 compressor" above to see a sample report</p>
         </div>
       )}
 

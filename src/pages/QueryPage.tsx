@@ -147,7 +147,7 @@ export default function QueryPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex-shrink-0 h-14 flex items-center justify-between px-6 border-b border-white/5">
         <div className="flex items-center gap-3">

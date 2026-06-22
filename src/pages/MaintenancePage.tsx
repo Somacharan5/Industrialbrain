@@ -107,11 +107,11 @@ export default function MaintenancePage() {
                 className={`panel p-4 border cursor-pointer hover:border-white/20 transition-all ${cfg.border} ${cfg.bg}`}
                 onClick={() => setSelectedTag(selectedTag === eq.tag ? null : eq.tag)}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4">
                   <div className="flex-shrink-0 w-20">
                     <span className="badge-blue font-mono text-xs">{eq.tag}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-[140px] sm:min-w-0">
                     <p className="text-sm text-carbon-200 truncate">{eq.name}</p>
                     <p className="text-[10px] text-carbon-600 font-mono">{eq.area}</p>
                   </div>

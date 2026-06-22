@@ -17,6 +17,17 @@ export default function CompliancePage() {
   const [flags, setFlags] = useState<ComplianceFlag[]>(DEMO_FLAGS)
   const [filter, setFilter] = useState<string>('all')
   const [loading, setLoading] = useState(false)
+  const [resolvingId, setResolvingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (import.meta.env.VITE_DEMO_MODE !== 'true') {
+      setLoading(true)
+      getComplianceFlags()
+        .then(setFlags)
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    }
+  }, [])
 
   const filtered = filter === 'all' ? flags : flags.filter(f => f.severity === filter || f.status === filter)
   const counts = {
@@ -27,9 +38,14 @@ export default function CompliancePage() {
   }
 
   const handleResolve = async (id: string) => {
-    setFlags(prev => prev.map(f => f.id === id ? { ...f, status: 'resolved' } : f))
-    if (import.meta.env.VITE_DEMO_MODE !== 'true') {
-      await resolveComplianceFlag(id)
+    setResolvingId(id)
+    try {
+      if (import.meta.env.VITE_DEMO_MODE !== 'true') {
+        await resolveComplianceFlag(id)
+      }
+      setFlags(prev => prev.map(f => f.id === id ? { ...f, status: 'resolved' } : f))
+    } finally {
+      setResolvingId(null)
     }
   }
 
@@ -44,8 +60,15 @@ export default function CompliancePage() {
       </div>
 
       {/* Score cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {loading && flags.length === 0 ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="panel p-4 animate-pulse">
+              <div className="h-7 w-10 bg-white/5 rounded mb-2" />
+              <div className="h-3 w-16 bg-white/5 rounded" />
+            </div>
+          ))
+        ) : [
           { label: 'Critical', count: counts.critical, color: 'text-red-400', bg: 'bg-red-500/8 border-red-500/15' },
           { label: 'Major', count: counts.major, color: 'text-amber-400', bg: 'bg-amber-500/8 border-amber-500/15' },
           { label: 'Minor', count: counts.minor, color: 'text-yellow-400', bg: 'bg-yellow-500/8 border-yellow-500/15' },
@@ -65,7 +88,7 @@ export default function CompliancePage() {
       {/* Regulation Coverage */}
       <div className="panel p-5 mb-6">
         <p className="text-sm font-medium text-carbon-300 mb-4">Regulatory Coverage</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { name: 'OISD Standards', score: 82, clauses: 47 },
             { name: 'Factory Act 1948', score: 74, clauses: 23 },
@@ -102,6 +125,15 @@ export default function CompliancePage() {
             {filter !== 'all' ? 'Clear filter' : ''}
           </button>
         </div>
+        {filtered.length === 0 && (
+          <div className="panel p-8 text-center">
+            <ShieldCheck size={20} className="text-carbon-600 mx-auto mb-2" />
+            <p className="text-sm text-carbon-400">No flags match this filter</p>
+            <button onClick={() => setFilter('all')} className="text-xs text-signal-green hover:text-signal-green/80 mt-2">
+              Clear filter
+            </button>
+          </div>
+        )}
         {filtered.map((flag, i) => {
           const cfg = SEVERITY_CONFIG[flag.severity]
           return (
@@ -136,10 +168,11 @@ export default function CompliancePage() {
                 {flag.status !== 'resolved' && (
                   <button
                     onClick={() => handleResolve(flag.id)}
-                    className="flex-shrink-0 flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 px-2 py-1 rounded transition-all"
+                    disabled={resolvingId === flag.id}
+                    className="flex-shrink-0 flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 px-2 py-1 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle size={10} />
-                    Resolve
+                    {resolvingId === flag.id ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle size={10} />}
+                    {resolvingId === flag.id ? 'Resolving…' : 'Resolve'}
                   </button>
                 )}
                 {flag.status === 'resolved' && (

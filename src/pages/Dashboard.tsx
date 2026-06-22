@@ -66,38 +66,51 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          label="Documents Ingested"
-          value={stats.total_documents.toLocaleString()}
-          sub={`${stats.total_chunks.toLocaleString()} chunks`}
-          icon={<FileText size={14} />}
-          color="blue"
-          onClick={() => navigate('/documents')}
-        />
-        <StatCard
-          label="Knowledge Entities"
-          value={stats.total_entities.toLocaleString()}
-          sub={`${stats.knowledge_graph_edges.toLocaleString()} relationships`}
-          icon={<GitFork size={14} />}
-          color="purple"
-          onClick={() => navigate('/graph')}
-        />
-        <StatCard
-          label="Compliance Score"
-          value={`${stats.compliance_score}%`}
-          sub={`${stats.active_flags} open flags`}
-          icon={<ShieldCheck size={14} />}
-          color={stats.compliance_score >= 80 ? 'green' : stats.compliance_score >= 60 ? 'amber' : 'red'}
-          onClick={() => navigate('/compliance')}
-        />
-        <StatCard
-          label="Stale Documents"
-          value={stats.stale_documents.toString()}
-          sub="need review"
-          icon={<Activity size={14} />}
-          color={stats.stale_documents > 10 ? 'amber' : 'green'}
-          onClick={() => navigate('/health')}
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="panel p-4 animate-pulse">
+              <div className="w-7 h-7 rounded bg-white/5 mb-3" />
+              <div className="h-5 w-16 bg-white/5 rounded mb-2" />
+              <div className="h-3 w-24 bg-white/5 rounded mb-1.5" />
+              <div className="h-2.5 w-20 bg-white/5 rounded" />
+            </div>
+          ))
+        ) : (
+          <>
+            <StatCard
+              label="Documents Ingested"
+              value={stats.total_documents.toLocaleString()}
+              sub={`${stats.total_chunks.toLocaleString()} chunks`}
+              icon={<FileText size={14} />}
+              color="blue"
+              onClick={() => navigate('/documents')}
+            />
+            <StatCard
+              label="Knowledge Entities"
+              value={stats.total_entities.toLocaleString()}
+              sub={`${stats.knowledge_graph_edges.toLocaleString()} relationships`}
+              icon={<GitFork size={14} />}
+              color="purple"
+              onClick={() => navigate('/graph')}
+            />
+            <StatCard
+              label="Compliance Score"
+              value={`${stats.compliance_score}%`}
+              sub={`${stats.active_flags} open flags`}
+              icon={<ShieldCheck size={14} />}
+              color={stats.compliance_score >= 80 ? 'green' : stats.compliance_score >= 60 ? 'amber' : 'red'}
+              onClick={() => navigate('/compliance')}
+            />
+            <StatCard
+              label="Stale Documents"
+              value={stats.stale_documents.toString()}
+              sub="need review"
+              icon={<Activity size={14} />}
+              color={stats.stale_documents > 10 ? 'amber' : 'green'}
+              onClick={() => navigate('/health')}
+            />
+          </>
+        )}
       </div>
 
       {/* Main Grid */}

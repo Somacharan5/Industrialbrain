@@ -132,7 +132,7 @@ export default function IngestPage() {
 
       {/* Config Row */}
       {jobs.length > 0 && (
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
           <div className="flex-1">
             <label className="text-xs text-carbon-500 block mb-1">Plant Area (optional)</label>
             <input
@@ -143,7 +143,7 @@ export default function IngestPage() {
               className="query-input text-sm py-2"
             />
           </div>
-          <div className="flex items-center gap-2 pt-5">
+          <div className="flex items-center gap-2 sm:pt-5">
             <span className="text-xs font-mono text-carbon-500">
               {queuedCount} queued · {doneCount} done · {errorCount} errors
             </span>
@@ -160,6 +160,22 @@ export default function IngestPage() {
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Error summary */}
+      {!processing && errorCount > 0 && (
+        <div className="flex items-center justify-between gap-2 mb-4 p-3 rounded-lg border border-red-500/20 bg-red-500/5 text-sm text-red-400">
+          <span className="flex items-center gap-2">
+            <AlertCircle size={14} className="flex-shrink-0" />
+            {errorCount} document{errorCount !== 1 ? 's' : ''} failed to ingest — see details below.
+          </span>
+          <button
+            onClick={() => setJobs(prev => prev.map(j => j.status === 'error' ? { ...j, status: 'queued', stage: 'Ready', progress: 0, error: undefined } : j))}
+            className="flex-shrink-0 text-xs text-red-300 hover:text-red-200 underline"
+          >
+            Retry failed
+          </button>
         </div>
       )}
 
